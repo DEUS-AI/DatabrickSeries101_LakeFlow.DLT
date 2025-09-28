@@ -7,7 +7,7 @@ from pyspark.sql import functions as F
 )
 def wikipedia_editor_insights():
     return (
-        dlt.read("wikipedia_edits_cleaned")
+        dlt.read("silver.wikipedia_edits_cleaned")
         .groupBy("editor", "wiki_language")
         .agg(
             F.count("*").alias("total_edits"),

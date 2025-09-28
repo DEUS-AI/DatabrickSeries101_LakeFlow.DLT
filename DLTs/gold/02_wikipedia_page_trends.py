@@ -7,7 +7,7 @@ from pyspark.sql import functions as F
 )
 def wikipedia_page_trends():
     return (
-        dlt.read("wikipedia_edits_cleaned")
+        dlt.read("silver.wikipedia_edits_cleaned")
         .groupBy("page_title", "wiki_language", 
                 F.date_trunc("day", F.col("event_timestamp")).alias("edit_date"))
         .agg(

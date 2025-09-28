@@ -7,7 +7,7 @@ from pyspark.sql import functions as F
 )
 def wikipedia_edits_cleaned():
     return (
-        dlt.read("raw_wikipedia_edits")
+        dlt.read("landing.raw_wikipedia_edits")
         .withColumn("event_timestamp", F.from_unixtime(F.col("timestamp")/1000))
         .withColumn("is_bot_edit", F.col("bot"))
         .withColumn("is_minor_edit", F.col("minor"))

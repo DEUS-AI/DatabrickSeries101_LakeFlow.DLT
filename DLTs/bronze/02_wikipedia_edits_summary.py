@@ -7,7 +7,7 @@ from pyspark.sql import functions as F
 )
 def wikipedia_edits_summary():
     return (
-        dlt.read("wikipedia_edits_cleaned")
+        dlt.read("bronze.wikipedia_edits_cleaned")
         .groupBy(
             F.date_trunc("hour", F.col("event_timestamp")).alias("hour"),
             F.col("wiki_language"),

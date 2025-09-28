@@ -7,7 +7,7 @@ from pyspark.sql import functions as F
 )
 def wikipedia_top_pages():
     return (
-        dlt.read("wikipedia_edits_cleaned")
+        dlt.read("bronze.wikipedia_edits_cleaned")
         .groupBy("page_title", "wiki_language")
         .agg(
             F.count("*").alias("edit_count"),
