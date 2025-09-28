@@ -1,0 +1,74 @@
+# Serverless Compute Configuration for DLT Pipelines
+# This file defines serverless compute settings for optimal performance and cost
+
+serverless_config:
+  # Basic Serverless Settings
+  enabled: true
+  auto_scaling:
+    min_workers: 0
+    max_workers: 10
+    target_workers: 2
+  
+  # Cost Optimization
+  spot_instance_policy: "COST_OPTIMIZED"
+  photon_enabled: true
+  
+  # Runtime Configuration
+  runtime_version: "13.3.x-scala2.12"
+  
+  # Performance Settings
+  enable_elastic_disk: true
+  disk_spec:
+    disk_type:
+      ebs_volume_type: "gp3"
+    disk_size: 100
+    disk_count: 1
+  
+  # Network Configuration
+  network_config:
+    vpc_id: "vpc-12345678"
+    subnet_id: "subnet-12345678"
+    security_group_ids: ["sg-12345678"]
+  
+  # Monitoring and Logging
+  enable_monitoring: true
+  log_destination: "s3://your-logs-bucket/dlt-pipelines/"
+  
+  # Data Quality Settings
+  data_quality_enabled: true
+  data_quality_expectations:
+    - name: "wikipedia_edits_not_null"
+      expectation: "expect_column_values_to_not_be_null"
+      column: "id"
+    - name: "wikipedia_edits_timestamp_valid"
+      expectation: "expect_column_values_to_be_between"
+      column: "timestamp"
+      min_value: 0
+      max_value: 9999999999999
+
+# Pipeline-specific Serverless Settings
+pipeline_configs:
+  landing:
+    serverless_config:
+      max_workers: 5
+      target_workers: 1
+      
+  bronze:
+    serverless_config:
+      max_workers: 8
+      target_workers: 2
+      
+  silver:
+    serverless_config:
+      max_workers: 10
+      target_workers: 3
+      
+  gold:
+    serverless_config:
+      max_workers: 15
+      target_workers: 5
+      
+  unified:
+    serverless_config:
+      max_workers: 20
+      target_workers: 5

@@ -1,0 +1,173 @@
+name: Deploy Wikipedia DLT Pipelines
+
+on:
+  push:
+    branches: [main, develop]
+    paths: 
+      - 'DLTs/**'
+      - 'databricks.yml'
+      - '.databricks/**'
+  pull_request:
+    branches: [main]
+    paths: 
+      - 'DLTs/**'
+      - 'databricks.yml'
+      - '.databricks/**'
+
+env:
+  DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+  DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+jobs:
+  # Validate Bundle Configuration
+  validate-bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          
+      - name: Install Databricks CLI
+        run: |
+          pip install databricks-cli
+          pip install databricks-asset-bundle
+          
+      - name: Validate Bundle Configuration
+        run: |
+          databricks bundle validate
+          
+      - name: Validate DLT Syntax
+        run: |
+          python -m py_compile DLTs/sequential/landing/01_raw_wikipedia_edits.py
+          python -m py_compile DLTs/sequential/bronze/01_bronze_wikipedia_tables.py
+          python -m py_compile DLTs/sequential/silver/01_silver_wikipedia_tables.py
+          python -m py_compile DLTs/sequential/gold/01_gold_wikipedia_tables.py
+          python -m py_compile DLTs/unified/01_unified_wikipedia_pipeline.py
+
+  # Deploy Sequential Pipelines (Option 1)
+  deploy-sequential:
+    needs: validate-bundle
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    strategy:
+      matrix:
+        pipeline: [landing, bronze, silver, gold]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          
+      - name: Install Databricks CLI
+        run: |
+          pip install databricks-cli
+          pip install databricks-asset-bundle
+          
+      - name: Deploy ${{ matrix.pipeline }} Pipeline
+        run: |
+          databricks bundle deploy --target ${{ matrix.pipeline }}
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+  # Deploy Unified Pipeline (Option 2)
+  deploy-unified:
+    needs: validate-bundle
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          
+      - name: Install Databricks CLI
+        run: |
+          pip install databricks-cli
+          pip install databricks-asset-bundle
+          
+      - name: Deploy Unified Pipeline
+        run: |
+          databricks bundle deploy --target unified
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+  # Run Pipeline Tests
+  test-pipelines:
+    needs: [deploy-sequential, deploy-unified]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          
+      - name: Install Databricks CLI
+        run: |
+          pip install databricks-cli
+          pip install databricks-asset-bundle
+          
+      - name: Test Sequential Pipelines
+        run: |
+          # Test landing pipeline
+          databricks pipelines get --pipeline-id ${{ secrets.LANDING_PIPELINE_ID }}
+          
+          # Test bronze pipeline
+          databricks pipelines get --pipeline-id ${{ secrets.BRONZE_PIPELINE_ID }}
+          
+          # Test silver pipeline
+          databricks pipelines get --pipeline-id ${{ secrets.SILVER_PIPELINE_ID }}
+          
+          # Test gold pipeline
+          databricks pipelines get --pipeline-id ${{ secrets.GOLD_PIPELINE_ID }}
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          
+      - name: Test Unified Pipeline
+        run: |
+          databricks pipelines get --pipeline-id ${{ secrets.UNIFIED_PIPELINE_ID }}
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+  # Cleanup on PR Close
+  cleanup:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          
+      - name: Install Databricks CLI
+        run: |
+          pip install databricks-cli
+          pip install databricks-asset-bundle
+          
+      - name: Cleanup Test Resources
+        run: |
+          # Clean up any test resources created during PR validation
+          echo "Cleaning up test resources..."
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}

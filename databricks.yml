@@ -1,0 +1,101 @@
+bundle:
+  name: wikipedia-dlt-pipelines
+
+sync:
+  paths:
+    - "./DLTs" 
+
+targets:
+  dev:
+    default: true
+
+resources:
+  pipelines:
+    landing_pipeline:
+      name: "01-wikipedia-landing-pipeline"
+      schema: "landing"
+      catalog: "main"
+      development: true
+      configuration:
+        "pipelines.landing.storage": "delta"
+        "pipelines.landing.layout": "landing"
+        "pipelines.landing.schema": "wikipedia"
+        "pipelines.landing.catalog": "main"
+      libraries:
+        - file:
+            path: "DLTs/landing/01_raw_wikipedia_edits.py"
+      serverless: true
+      
+    bronze_pipeline:
+      name: "02-wikipedia-bronze-pipeline"
+      schema: "bronze"
+      catalog: "main"
+      development: true
+      configuration:
+        "pipelines.bronze.storage": "delta"
+        "pipelines.bronze.layout": "bronze"
+        "pipelines.bronze.schema": "wikipedia"
+        "pipelines.bronze.catalog": "main"
+      libraries:
+        - file:
+            path: "DLTs/bronze/01_wikipedia_edits_cleaned.py"
+        - file:
+            path: "DLTs/bronze/02_wikipedia_edits_summary.py"
+      serverless: true
+      
+    silver_pipeline:
+      name: "03-wikipedia-silver-pipeline"
+      schema: "silver"
+      catalog: "main"
+      development: true
+      configuration:
+        "pipelines.silver.storage": "delta"
+        "pipelines.silver.layout": "silver"
+        "pipelines.silver.schema": "wikipedia"
+        "pipelines.silver.catalog": "main"
+      libraries:
+        - file:
+            path: "DLTs/silver/01_wikipedia_top_editors.py"
+        - file:
+            path: "DLTs/silver/02_wikipedia_top_pages.py"
+      serverless: true
+      
+    gold_pipeline:
+      name: "04-wikipedia-gold-pipeline"
+      schema: "gold"
+      catalog: "main"
+      development: true
+      configuration:
+        "pipelines.gold.storage": "delta"
+        "pipelines.gold.layout": "gold"
+        "pipelines.gold.schema": "wikipedia"
+        "pipelines.gold.catalog": "main"
+      libraries:
+        - file:
+            path: "DLTs/gold/01_wikipedia_editor_insights.py"
+        - file:
+            path: "DLTs/gold/02_wikipedia_page_trends.py"
+      serverless: true
+
+    unified_pipeline:
+      name: "05-wikipedia-unified-pipeline"
+      schema: "unified"
+      catalog: "main"
+      development: true
+      configuration:
+        "pipelines.unified.storage": "delta"
+        "pipelines.unified.layout": "all_layers"
+        "pipelines.unified.schema": "wikipedia"
+        "pipelines.unified.catalog": "main"
+      libraries:
+        - file:
+            path: "DLTs/sequential/landing/01_raw_wikipedia_edits.py"
+        - file:
+            path: "DLTs/sequential/bronze/01_bronze_wikipedia_tables.py"
+        - file:
+            path: "DLTs/sequential/silver/01_silver_wikipedia_tables.py"
+        - file:
+            path: "DLTs/sequential/gold/01_gold_wikipedia_tables.py"
+      serverless: true
+
+
