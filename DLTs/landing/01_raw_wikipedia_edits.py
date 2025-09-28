@@ -45,6 +45,8 @@ wikipedia_schema = StructType([
     name="raw_wikipedia_edits",
     comment="Raw Wikipedia edit events from Azure Blob Storage - Landing Layer"
 )
+@dlt.expect_or_drop("valid_id", "id IS NOT NULL")
+@dlt.expect_or_drop("valid_timestamp", "timestamp IS NOT NULL")
 def raw_wikipedia_edits():
     spark.conf.set(
         "fs.azure.account.key.unitycatalogstore.dfs.core.windows.net",

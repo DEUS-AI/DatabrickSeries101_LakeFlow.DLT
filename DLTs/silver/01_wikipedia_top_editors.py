@@ -5,6 +5,10 @@ from pyspark.sql import functions as F
     name="wikipedia_top_editors",
     comment="Top editors by edit count - Silver Layer"
 )
+@dlt.expect_or_drop("valid_total_edits", "total_edits > 0")
+@dlt.expect_or_drop("valid_editor", "editor IS NOT NULL")
+@dlt.expect_or_drop("valid_wiki_language", "wiki_language IS NOT NULL")
+@dlt.expect_or_drop("valid_last_edit_time", "last_edit_time IS NOT NULL")
 def wikipedia_top_editors():
     return (
         dlt.read("bronze.wikipedia_edits_cleaned")

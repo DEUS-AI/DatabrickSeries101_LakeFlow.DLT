@@ -5,6 +5,7 @@ from pyspark.sql import functions as F
     name="wikipedia_editor_insights",
     comment="Editor behavior insights and patterns - Gold Layer"
 )
+@dlt.expect("non_negative_activity_span", "activity_span_days >= 0")
 def wikipedia_editor_insights():
     return (
         dlt.read("silver.wikipedia_top_editors")

@@ -5,6 +5,7 @@ from pyspark.sql import functions as F
     name="wikipedia_edits_summary",
     comment="Summary statistics of Wikipedia edits - Bronze Layer"
 )
+@dlt.expect("positive_edit_count", "edit_count > 0")
 def wikipedia_edits_summary():
     return (
         dlt.read("bronze.wikipedia_edits_cleaned")

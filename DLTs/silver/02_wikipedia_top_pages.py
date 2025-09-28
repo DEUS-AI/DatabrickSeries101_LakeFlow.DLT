@@ -5,6 +5,7 @@ from pyspark.sql import functions as F
     name="wikipedia_top_pages",
     comment="Most edited pages - Silver Layer"
 )
+@dlt.expect_or_drop("valid_edit_count", "edit_count > 0")
 def wikipedia_top_pages():
     return (
         dlt.read("bronze.wikipedia_edits_cleaned")

@@ -5,6 +5,7 @@ from pyspark.sql import functions as F
     name="wikipedia_page_trends",
     comment="Page edit trends and patterns - Gold Layer"
 )
+@dlt.expect("positive_unique_editors", "unique_editors > 0")
 def wikipedia_page_trends():
     return (
         dlt.read("silver.wikipedia_top_pages")

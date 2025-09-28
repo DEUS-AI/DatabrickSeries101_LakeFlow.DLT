@@ -5,6 +5,9 @@ from pyspark.sql import functions as F
     name="wikipedia_edits_cleaned",
     comment="Cleaned and structured Wikipedia edit events - Bronze Layer"
 )
+@dlt.expect_or_drop("valid_editor", "editor IS NOT NULL")
+@dlt.expect_or_drop("valid_page_title", "page_title IS NOT NULL")
+@dlt.expect_or_drop("valid_event_timestamp", "event_timestamp IS NOT NULL")
 def wikipedia_edits_cleaned():
     return (
         dlt.read("landing.raw_wikipedia_edits")
