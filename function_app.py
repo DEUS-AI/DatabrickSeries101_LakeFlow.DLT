@@ -67,7 +67,7 @@ def get_wikipedia_updates(myTimer: func.TimerRequest) -> None:
         try:
             # Create a unique filename
             timestamp_str = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-            file_name = f"{BLOB_FOLDER_PATH}/wiki_edits_{timestamp_str}.json"
+            file_name = f"{BLOB_CONTAINER_NAME}/wiki_edits_{timestamp_str}.json"
             
             # Convert the list of events to a JSON string (one JSON object per line)
             file_content = "\n".join(json.dumps(event) for event in events)

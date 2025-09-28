@@ -46,11 +46,15 @@ wikipedia_schema = StructType([
     comment="Raw Wikipedia edit events from Azure Blob Storage - Landing Layer"
 )
 def raw_wikipedia_edits():
+    spark.conf.set(
+        "fs.azure.account.key.unitycatalogstore.dfs.core.windows.net",
+        "SECRET_REMOVED=="
+    )
     return (
         spark.readStream
         .format("json")
-        .schema(wikipedia_schema)
-        .option("multiline", "false")
-        .option("pathGlobFilter", "wiki_edits_*.json")
-        .load("/Volumes/main/wikipedia_data/landing/raw_files/")
+        .schema(wikipedia_schema)  # Use explicit schema to avoid empty directory issues
+        .option("multiline", "false")  # One JSON object per line
+        .option("pathGlobFilter", "wiki_edits_*.json")  # Only read Wikipedia files
+        .load("/Volumes/main/landing/wiki_files/landing/raw_files/")
     )
